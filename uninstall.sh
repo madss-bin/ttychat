@@ -88,7 +88,7 @@ run_step "Removing Binary" "sudo rm -f /usr/local/bin/ttychat"
 echo -e "\n${C_PINK}Would you like to remove local configuration and identities? (~/.config/ttychat) (y/N)${NC}"
 read -r wipe
 if [[ "$wipe" =~ ^[Yy]$ ]]; then
-    run_step "Cleaning Local Data" "rm -rf $HOME/.config/ttychat"
+    run_step "Cleaning Local files" "rm -rf $HOME/.config/ttychat"
 fi
 
 echo
