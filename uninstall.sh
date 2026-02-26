@@ -79,7 +79,7 @@ show_logo
 echo -e "${C_PINK}Are you sure you want to uninstall ttychat? (y/N)${NC}"
 read -r confirm
 if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-    echo -e "${C_BLUE}Uninstall cancelled.${NC}"
+    echo -e "${C_BLUE}Uninstall cancelled..${NC}"
     exit 0
 fi
 
