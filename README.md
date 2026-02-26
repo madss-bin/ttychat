@@ -20,6 +20,10 @@ ttychat is a lightweight terminal chat client built for [ttychatd](https://githu
 - **Low Overhead**: Compiled binary with minimal runtime dependencies, ensuring low CPU and memory usage.
 - **Multi-Platform**: Native support for Linux distros (Arch, Debian, Fedora, etc.) and Windows.
 
+<br>
+
+<img src="https://github.com/madss-bin/ttychat/assets/ss.png" alt="ttychat" width="800"/>
+
 ## Installation
 
 ### Linux
