@@ -1,8 +1,8 @@
 use anyhow::Result;
 use base64::Engine;
-use crossterm::event::{KeyCode, KeyModifiers};
+use crossterm::{event::{KeyCode, KeyModifiers}, execute};
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::io::Stdout;
+use std::io::{self, Stdout};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
@@ -153,6 +153,16 @@ impl App {
                     }
                 }
                 AppEvent::Resize => {}
+                AppEvent::FocusGained => {
+                    self.terminal_focused = true;
+                    if self.unread_count > 0 {
+                        self.unread_count = 0;
+                        let _ = execute!(io::stdout(), crossterm::terminal::SetTitle("ttychat"));
+                    }
+                }
+                AppEvent::FocusLost => {
+                    self.terminal_focused = false;
+                }
                 AppEvent::Key(key) => {
                     if self.handle_key(key) {
                         return Ok(());
@@ -271,7 +281,20 @@ impl App {
     }
 
     fn push_message(&mut self, msg: ChatMessage) {
-        self.chat.messages.push(msg);
+        self.chat.messages.push(msg.clone());
+
+        let is_own = msg.from == self.chat.username;
+        if !msg.is_system && !is_own && !self.terminal_focused && !self.notifications_muted {
+            self.unread_count += 1;
+            let title = format!("({} unread) ttychat", self.unread_count);
+            let _ = execute!(io::stdout(), crossterm::terminal::SetTitle(title.as_str()));
+            let notif_from = msg.from.clone();
+            let notif_text = msg.text.clone();
+            tokio::task::spawn_blocking(move || {
+                crate::notify::play_notification_sound();
+                crate::notify::send_desktop_notification(&notif_from, &notif_text);
+            });
+        }
     }
 
     fn push_system_msg(&mut self, text: &str) {

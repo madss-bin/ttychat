@@ -9,6 +9,8 @@ pub enum AppEvent {
     Key(KeyEvent),
     Tick,
     Resize,
+    FocusGained,
+    FocusLost,
 }
 
 pub fn spawn_event_task(tx: mpsc::UnboundedSender<AppEvent>) {
@@ -28,6 +30,12 @@ pub fn spawn_event_task(tx: mpsc::UnboundedSender<AppEvent>) {
                         }
                         Some(Ok(Event::Resize(_, _))) => {
                             if tx.send(AppEvent::Resize).is_err() { break; }
+                        }
+                        Some(Ok(Event::FocusGained)) => {
+                            if tx.send(AppEvent::FocusGained).is_err() { break; }
+                        }
+                        Some(Ok(Event::FocusLost)) => {
+                            if tx.send(AppEvent::FocusLost).is_err() { break; }
                         }
                         Some(Err(_)) | None => break,
                         _ => {}

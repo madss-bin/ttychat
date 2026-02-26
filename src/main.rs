@@ -11,6 +11,7 @@ mod config;
 mod crypto;
 mod events;
 mod net;
+mod notify;
 mod ui;
 mod widgets;
 
@@ -36,10 +37,29 @@ async fn main() -> Result<()> {
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, crossterm::cursor::Hide)?;
+    execute!(
+        stdout,
+        EnterAlternateScreen,
+        crossterm::cursor::Hide,
+        crossterm::event::EnableFocusChange,
+    )?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
+
+    let saved_stderr = unsafe { libc::dup(2) };
+    unsafe {
+        if saved_stderr >= 0 {
+            let devnull = libc::open(
+                b"/dev/null\0".as_ptr() as *const libc::c_char,
+                libc::O_WRONLY | libc::O_CLOEXEC,
+            );
+            if devnull >= 0 {
+                libc::dup2(devnull, 2);
+                libc::close(devnull);
+            }
+        }
+    }
 
     let original_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
@@ -51,10 +71,18 @@ async fn main() -> Result<()> {
     let result = App::new().run(&mut terminal).await;
 
     disable_raw_mode()?;
+    unsafe {
+        if saved_stderr >= 0 {
+            libc::dup2(saved_stderr, 2);
+            libc::close(saved_stderr);
+        }
+    }
     execute!(
         terminal.backend_mut(),
         LeaveAlternateScreen,
         crossterm::cursor::Show,
+        crossterm::event::DisableFocusChange,
+        crossterm::terminal::SetTitle(""),
     )?;
     terminal.show_cursor()?;
 

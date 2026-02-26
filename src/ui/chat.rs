@@ -240,9 +240,10 @@ fn draw_input_bar(frame: &mut Frame, app: &App, area: Rect) {
         ));
     }
 
+    let muted_indicator = if app.notifications_muted { "  muted" } else { "" };
     let placeholder = if input.is_empty() {
         vec![Span::styled(
-            " Type a message… (/admin <action> for admin commands)",
+            format!(" Type a message… (/mute · /unmute · /admin <action>){muted_indicator}"),
             Style::default().fg(Color::DarkGray),
         )]
     } else {
@@ -289,10 +290,10 @@ fn hint_sep(s: &'static str) -> Span<'static> {
 
 fn draw_help_overlay(frame: &mut Frame, area: Rect, _app: &App) {
     let overlay = Rect {
-        x: area.width.saturating_sub(42) / 2,
-        y: area.height.saturating_sub(20) / 2,
-        width: 42.min(area.width),
-        height: 20.min(area.height),
+        x: area.width.saturating_sub(48) / 2,
+        y: area.height.saturating_sub(26) / 2,
+        width: 48.min(area.width),
+        height: 26.min(area.height),
     };
 
     frame.render_widget(Clear, overlay);
@@ -313,8 +314,11 @@ fn draw_help_overlay(frame: &mut Frame, area: Rect, _app: &App) {
         keybind_line("F1",      "Toggle this help"),
         keybind_line("Ctrl-C",  "Quit"),
         Line::from(""),
-        Line::from(Span::styled("  ADMIN", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))),
-        keybind_line("/admin invite", "Request invite code"),
+        Line::from(Span::styled("  COMMANDS", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))),
+        keybind_line("/mute",        "Mute notifications"),
+        keybind_line("/unmute",      "Unmute notifications"),
+        keybind_line("/admin invite","Request invite code"),
+        Line::from(""),
         Line::from(""),
         Line::from(Span::styled("  [ Any key = close ]", Style::default().fg(Color::DarkGray))),
     ];
@@ -370,11 +374,37 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
             let text = app.chat.input.trim().to_string();
             if !text.is_empty() {
                     if let Some(tx) = &app.net_cmd_tx {
-                        if let Some(cmd) = text.strip_prefix("/admin ") {
+                        if text == "/mute" {
+                            app.notifications_muted = true;
+                            app.chat.input.clear();
+                            app.chat.input_cursor = 0;
+                            app.chat.messages.push(crate::app::ChatMessage {
+                                from: "─ sys ─".into(),
+                                text: "Notifications muted. Type /unmute to re-enable.".into(),
+                                timestamp: chrono::Local::now().format("%H:%M").to_string(),
+                                is_system: true,
+                                is_admin: false,
+                            });
+                            return false;
+                        } else if text == "/unmute" {
+                            app.notifications_muted = false;
+                            app.chat.input.clear();
+                            app.chat.input_cursor = 0;
+                            app.chat.messages.push(crate::app::ChatMessage {
+                                from: "─ sys ─".into(),
+                                text: "Notifications unmuted.".into(),
+                                timestamp: chrono::Local::now().format("%H:%M").to_string(),
+                                is_system: true,
+                                is_admin: false,
+                            });
+                            return false;
+                        } else if let Some(cmd) = text.strip_prefix("/admin ") {
                             let action = cmd.trim().to_string();
                             if !action.is_empty() {
                                 let _ = tx.send(crate::net::NetCommand::SendAdminCmd(action));
                             }
+                        } else if !text.starts_with('/') || text.starts_with("/admin ") {
+                            let _ = tx.send(crate::net::NetCommand::SendMessage(text));
                         } else {
                             let _ = tx.send(crate::net::NetCommand::SendMessage(text));
                         }

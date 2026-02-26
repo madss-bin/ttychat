@@ -89,6 +89,10 @@ pub struct App {
     pub net_cmd_tx: Option<mpsc::UnboundedSender<NetCommand>>,
     pub net_event_rx: Option<mpsc::UnboundedReceiver<NetEvent>>,
     pub app_event_tx: Option<mpsc::UnboundedSender<AppEvent>>,
+
+    pub terminal_focused: bool,
+    pub unread_count: u32,
+    pub notifications_muted: bool,
 }
 
 impl App {
@@ -119,6 +123,9 @@ impl App {
             net_cmd_tx: None,
             net_event_rx: None,
             app_event_tx: None,
+            terminal_focused: true,
+            unread_count: 0,
+            notifications_muted: false,
         }
     }
 }
