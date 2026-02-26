@@ -46,7 +46,7 @@ Installs the binary to `$HOME\AppData\Local\ttychat\bin`.
 
 # From Releases (Pre-built Binaries)
 
-1. Go to the [[https://github.com/madss-bin/ttychat/releases][Releases page]].
+1. Go to the [Releases page](https://github.com/madss-bin/ttychat/releases).
 
 ## Usage
 
