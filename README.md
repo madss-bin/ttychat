@@ -22,7 +22,7 @@ ttychat is a lightweight terminal chat client built for [ttychatd](https://githu
 
 <br>
 
-<img src="https://github.com/madss-bin/ttychat/assets/ss.png" alt="ttychatd" width="800"/>
+<img src="/assets/ss.png" alt="ttychatd" width="800"/>
 
 ## Installation
 
