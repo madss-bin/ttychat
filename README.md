@@ -27,7 +27,7 @@ ttychat is a lightweight terminal chat client built for [ttychatd](https://githu
 Run the automated installation script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/madss-bin/ttychat/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/madss-bin/ttychat/master/install.sh | bash
 ```
 
 The script detects your distribution (Arch, Debian, Ubuntu, Fedora, openSUSE), installs necessary build dependencies, and compiles the project from source. Binary is installed to `/usr/local/bin/ttychat`.
